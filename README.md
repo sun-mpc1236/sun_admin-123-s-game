@@ -27,3 +27,5 @@ Nasadenie na GitHub Pages:
 
 Poznámka: Automatická konverzia `.fbx` v CI by vyžadovala stiahnutie binárky do workflow — je to možné, ale môže byť zložitejšie kvôli veľkým binárkam a licenčným požiadavkám. Tento repozitár poskytuje lokálne skripty a jasné inštrukcie.
 
+<!-- trigger workflow: touch README -->
+
