@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>3D CHIBI HEROES | FPS ARENA</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="game-hud">
+        <div class="hud-top">
+            <div class="hud-card" id="playerNameDisplay">⚔️ CHIBI WARRIOR</div>
+            <div class="weapon-card" id="weaponDisplay">🔫 WEAPON</div>
+            <div class="hud-card" id="playerCountDisplay">👥 10/10</div>
+        </div>
+    </div>
+    <div class="health-container">
+        <div class="health-label">❤️ HEALTH</div>
+        <div class="health-bar-bg"><div class="health-bar-fill" id="healthFillBar"></div></div>
+    </div>
+    <div class="ammo-box">
+        <div class="ammo-number" id="ammoText">30/90</div>
+        <div style="font-size: 11px;">AMMO</div>
+    </div>
+    <div class="skill-dock">
+        <button class="skill-btn" id="skill1Btn">✨ SKILL Q</button>
+        <button class="skill-btn" id="skill2Btn">🛡️ SKILL E</button>
+        <button class="skill-btn" id="skill3Btn">⭐ ULTIMATE R</button>
+    </div>
+    <div class="crosshair"></div>
+    <div class="kill-feed" id="killFeed"></div>
+
+    <!-- Exit button appears after the game starts -->
+    <button id="exitGameBtn" class="exit-btn" style="display: none;">🚪 EXIT</button>
+
+    <!-- Character and map selection menu -->
+    <div id="gameMenu" class="game-menu">
+        <div class="menu-container">
+            <div class="menu-top">
+                <div class="menu-title">⚡ 3D CHIBI HEROES ⚡</div>
+                <div class="menu-subtitle">Vyber si hrdinu, mapu a misiu pre plnohodnotný chibi arénový súboj.</div>
+            </div>
+            <div class="menu-grid">
+                <div class="menu-left">
+                    <div class="menu-card mode-panel">
+                        <div class="panel-title">GAME MODES</div>
+                        <div class="mode-selector">
+                            <div class="mode-card selected" data-mode="PLAY">
+                                <div class="mode-icon">⚔️</div>
+                                <div class="mode-name">PLAY</div>
+                                <div class="mode-subtitle">Enter the fight</div>
+                            </div>
+                            <div class="mode-card" data-mode="MULTIPLAYER">
+                                <div class="mode-icon">🌐</div>
+                                <div class="mode-name">MULTIPLAYER</div>
+                                <div class="mode-subtitle">Fight players online</div>
+                            </div>
+                            <div class="mode-card" data-mode="STORY">
+                                <div class="mode-icon">📖</div>
+                                <div class="mode-name">STORY</div>
+                                <div class="mode-subtitle">Uncover the tale</div>
+                            </div>
+                            <div class="mode-card" data-mode="FIGHTERS">
+                                <div class="mode-icon">👊</div>
+                                <div class="mode-name">FIGHTERS</div>
+                                <div class="mode-subtitle">Choose your warrior</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="menu-card map-panel">
+                        <div class="panel-title">MAP SELECTION</div>
+                        <div class="map-selector" id="mapSelector">
+                            <div class="map-card" data-map="ARENA"><div class="map-name">🛡️ CHIBY ARENA</div></div>
+                            <div class="map-card" data-map="PIRATE"><div class="map-name">⛵ PIRATE COVE</div></div>
+                            <div class="map-card" data-map="VOLCANO"><div class="map-name">🌋 VOLCANO PEAK</div></div>
+                        </div>
+                    </div>
+                    <div class="menu-card challenge-panel">
+                        <div class="panel-title">DAILY CHALLENGES</div>
+                        <div class="challenge-row">
+                            <div>Win 3 matches</div>
+                            <div class="challenge-progress"><span>2/3</span><span>350</span></div>
+                        </div>
+                        <div class="challenge-row">
+                            <div>Land 50 special moves</div>
+                            <div class="challenge-progress"><span>28/50</span><span>250</span></div>
+                        </div>
+                        <div class="challenge-row">
+                            <div>Play 5 online matches</div>
+                            <div class="challenge-progress"><span>5/5</span><span>500</span></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="menu-center">
+                    <div class="menu-card preview-panel">
+                        <div class="panel-title">HERO PREVIEW</div>
+                        <div class="hero-preview-art" id="heroPreviewIcon">🎯</div>
+                        <div class="hero-preview-name" id="heroPreviewName">KAI 🎯</div>
+                        <div class="hero-preview-role" id="heroPreviewRole">Shadow Archer</div>
+                        <div class="hero-preview-desc" id="heroPreviewDesc">Expert archer who strikes from the dark with piercing energy arrows.</div>
+                        <div class="hero-stats-grid">
+                            <div class="hero-stat"><span>Weapon</span><strong id="heroPreviewWeapon">VOID BOW</strong></div>
+                            <div class="hero-stat"><span>Skill 1</span><strong id="heroPreviewSkill1">SHADOW ARROW</strong></div>
+                            <div class="hero-stat"><span>Skill 2</span><strong id="heroPreviewSkill2">PHASE SHIFT</strong></div>
+                            <div class="hero-stat"><span>Skill 3</span><strong id="heroPreviewSkill3">DUSK RAIN</strong></div>
+                        </div>
+                    </div>
+                    <div class="menu-card fighters-panel">
+                        <div class="panel-title">SELECT YOUR HERO</div>
+                        <div class="hero-selector" id="heroSelector">
+                            <div class="hero-card" data-hero="KAI"><span class="hero-icon">🎯</span><div class="hero-name">KAI</div></div>
+                            <div class="hero-card" data-hero="ZEA"><span class="hero-icon">🔥</span><div class="hero-name">ZEA</div></div>
+                            <div class="hero-card" data-hero="EON"><span class="hero-icon">🌀</span><div class="hero-name">EON</div></div>
+                            <div class="hero-card" data-hero="SYLA"><span class="hero-icon">🌿</span><div class="hero-name">SYLA</div></div>
+                            <div class="hero-card" data-hero="DRAV"><span class="hero-icon">💥</span><div class="hero-name">DRAV</div></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="menu-right">
+                    <div class="menu-card quick-panel">
+                        <div class="panel-title">QUICK ACCESS</div>
+                        <div class="quick-links">
+                            <div class="quick-card"><span class="quick-icon">⚒️</span><div class="quick-name">FORGE</div><div class="quick-desc">Create. Customize. Master.</div></div>
+                            <div class="quick-card"><span class="quick-icon">🧭</span><div class="quick-name">CHALLENGES</div><div class="quick-desc">Complete. Earn. Ascend.</div></div>
+                            <div class="quick-card"><span class="quick-icon">👤</span><div class="quick-name">PROFILE</div><div class="quick-desc">Your stats. Your legacy.</div></div>
+                            <div class="quick-card"><span class="quick-icon">⚙️</span><div class="quick-name">SETTINGS</div><div class="quick-desc">Adjust your experience.</div></div>
+                        </div>
+                    </div>
+                    <div class="menu-card mission-panel">
+                        <div class="panel-title">MISSIONS</div>
+                        <div class="mission-preview">
+                            <div class="mission-name" id="missionPreviewName">Arena Strike</div>
+                            <div class="mission-desc" id="missionPreviewDesc">Defeat 4 enemies in the arena.</div>
+                            <div class="mission-goal" id="missionPreviewGoal">0 / 4</div>
+                        </div>
+                        <div class="mission-selector" id="missionSelector"></div>
+                    </div>
+                </div>
+            </div>
+            <button class="play-btn" id="playBtn">▶ START GAME</button>
+            <div class="menu-note">Use WASD to move, click to shoot, F to reload, Q/E/R to use skills. Complete missions to earn rewards.</div>
+        </div>
+    </div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "/node_modules/three/build/three.module.js",
+                "three/addons/": "/node_modules/three/examples/jsm/"
+            }
+        }
+    </script>
+    <script type="module" src="script.js"></script>
+</body>
+</html>

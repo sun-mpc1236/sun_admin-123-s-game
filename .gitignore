@@ -1,0 +1,9 @@
+node_modules/
+my-html-game/node_modules/
+tools/bin/
+.DS_Store
+.vscode/
+*.log
+/.cache/
+dist/
+*.tmp

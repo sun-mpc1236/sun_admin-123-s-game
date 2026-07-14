@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>3D CHIBI HEROES | FPS ARÉNA</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+        body {
+            overflow: hidden;
+            font-family: 'Orbitron', 'Segoe UI', monospace;
+            background: #000;
+        }
+        /* HUD */
+        #game-hud {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+            pointer-events: none;
+            text-shadow: 2px 2px 0 rgba(0,0,0,0.8);
+            transition: opacity 0.3s;
+        }
+        .hud-top {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 25px;
+            background: linear-gradient(135deg, rgba(0,0,0,0.85), rgba(0,0,0,0.4));
+            backdrop-filter: blur(10px);
+            border-bottom: 2px solid #ffcc44;
+        }
+        .hud-card {
+            background: rgba(0,0,0,0.75);
+            padding: 8px 22px;
+            border-radius: 40px;
+            color: #ffdd99;
+            font-weight: bold;
+            font-size: 18px;
+            letter-spacing: 1px;
+            border-left: 3px solid gold;
+        }
+        .weapon-card {
+            background: rgba(0,0,0,0.75);
+            padding: 8px 22px;
+            border-radius: 40px;
+            color: #88ffaa;
+            font-weight: bold;
+        }
+        .exit-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #aa2e2e;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 40px;
+            font-weight: bold;
+            font-family: 'Orbitron';
+            cursor: pointer;
+            z-index: 1200;
+            pointer-events: auto;
+            backdrop-filter: blur(4px);
+            box-shadow: 0 0 8px darkred;
+            transition: 0.1s;
+        }
+        .exit-btn:hover {
+            background: #ff4444;
+            transform: scale(1.02);
+        }
+        .health-container {
+            position: fixed;
+            bottom: 30px;
+            left: 25px;
+            width: 340px;
+            background: rgba(0,0,0,0.7);
+            border-radius: 20px;
+            padding: 6px 12px;
+            backdrop-filter: blur(8px);
+            border-left: 5px solid #ff5533;
+        }
+        .health-bar-bg {
+            height: 28px;
+            background: #3a1a0a;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+        .health-bar-fill {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, #e34d2b, #ff7744);
+            border-radius: 20px;
+            transition: width 0.2s ease;
+        }
+        .health-label {
+            position: absolute;
+            top: -24px;
+            left: 10px;
+            color: white;
+            font-weight: bold;
+            font-size: 13px;
+        }
+        .ammo-box {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(12px);
+            padding: 12px 28px;
+            border-radius: 36px;
+            text-align: center;
+            border-right: 4px solid #ffaa44;
+        }
+        .ammo-number {
+            font-size: 52px;
+            font-weight: bold;
+            color: #ffffaa;
+            line-height: 1;
+            font-family: monospace;
+        }
+        .skill-dock {
+            position: fixed;
+            bottom: 140px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+            background: rgba(0,0,0,0.75);
+            padding: 12px 28px;
+            border-radius: 70px;
+            backdrop-filter: blur(16px);
+            pointer-events: auto;
+            z-index: 1100;
+            border: 1px solid #ffcc66;
+        }
+        .skill-btn {
+            background: #1a2a3a;
+            border: none;
+            color: white;
+            font-weight: bold;
+            padding: 10px 22px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-family: 'Orbitron';
+            transition: 0.08s linear;
+            font-size: 14px;
+            box-shadow: 0 0 6px cyan;
+        }
+        .skill-btn:active { transform: scale(0.94); background: #e67e22; }
+        .crosshair {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            width: 28px;
+            height: 28px;
+            transform: translate(-50%, -50%);
+            border: 2px solid white;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 1000;
+            box-shadow: 0 0 0 2px rgba(0,0,0,0.5);
+        }
+        .crosshair::before, .crosshair::after {
+            content: '';
+            position: absolute;
+            background: white;
+        }
+        .crosshair::before { width: 18px; height: 2px; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+        .crosshair::after { width: 2px; height: 18px; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+        .kill-feed {
+            position: fixed;
+            top: 110px;
+            right: 20px;
+            width: 280px;
+            pointer-events: none;
+            font-size: 13px;
+            font-weight: bold;
+            z-index: 1000;
+        }
+        .kill-entry {
+            background: rgba(0,0,0,0.7);
+            margin: 5px 0;
+            padding: 6px 12px;
+            border-radius: 20px;
+            border-left: 4px solid #ff6644;
+            color: #ffdd99;
+            backdrop-filter: blur(4px);
+        }
+        /* MENU ŠTÝL */
+        .game-menu {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.92);
+            backdrop-filter: blur(15px);
+            z-index: 2000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Orbitron', monospace;
+            transition: opacity 0.4s;
+        }
+        .menu-container {
+            background: linear-gradient(145deg, #1a1f2e, #0d1222);
+            border-radius: 50px;
+            padding: 40px 50px;
+            text-align: center;
+            border: 2px solid #ffcc44;
+            box-shadow: 0 0 40px rgba(255,200,0,0.3);
+            max-width: 550px;
+            width: 85%;
+        }
+        .menu-title {
+            font-size: 36px;
+            color: #ffdd99;
+            margin-bottom: 30px;
+            letter-spacing: 3px;
+            text-shadow: 0 0 10px #ffaa33;
+        }
+        .menu-section {
+            margin: 25px 0;
+        }
+        .menu-section h3 {
+            color: #ffcc88;
+            font-size: 22px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #ffaa55;
+            display: inline-block;
+        }
+        .hero-selector, .map-selector {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+        .hero-card, .map-card {
+            background: #0f121f;
+            border-radius: 30px;
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: 0.15s linear;
+            border: 2px solid #3a4060;
+            min-width: 110px;
+        }
+        .hero-card.selected, .map-card.selected {
+            border-color: #ffaa44;
+            background: #2a2f4a;
+            box-shadow: 0 0 15px rgba(255,170,0,0.5);
+            transform: scale(1.02);
+        }
+        .hero-icon {
+            font-size: 48px;
+            display: block;
+        }
+        .hero-name {
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 8px;
+            color: #ffdd99;
+        }
+        .map-name {
+            font-size: 16px;
+            font-weight: bold;
+            color: #aaffdd;
+        }
+        .play-btn {
+            background: #ff8800;
+            border: none;
+            padding: 14px 40px;
+            font-size: 24px;
+            font-weight: bold;
+            border-radius: 60px;
+            color: #1a1a2a;
+            cursor: pointer;
+            margin-top: 30px;
+            transition: 0.1s linear;
+            font-family: 'Orbitron';
+            box-shadow: 0 0 15px #ffaa33;
+        }
+        .play-btn:hover {
+            background: #ffaa33;
+            transform: scale(1.02);
+            box-shadow: 0 0 25px #ffcc44;
+        }
+        @media (max-width: 600px) {
+            .menu-container { padding: 25px 20px; }
+            .hero-card, .map-card { padding: 8px 12px; min-width: 80px; }
+            .hero-icon { font-size: 36px; }
+        }
+    </style>
+</head>
+<body>
+    <div id="game-hud">
+        <div class="hud-top">
+            <div class="hud-card" id="playerNameDisplay">⚔️ CHIBI BOJOVNÍK</div>
+            <div class="weapon-card" id="weaponDisplay">🔫 ZBRAŇ</div>
+            <div class="hud-card" id="playerCountDisplay">👥 10/10</div>
+        </div>
+    </div>
+    <div class="health-container">
+        <div class="health-label">❤️ ŽIVOTY</div>
+        <div class="health-bar-bg"><div class="health-bar-fill" id="healthFillBar"></div></div>
+    </div>
+    <div class="ammo-box">
+        <div class="ammo-number" id="ammoText">30/90</div>
+        <div style="font-size: 11px;">ZÁSOBNÍK</div>
+    </div>
+    <div class="skill-dock">
+        <button class="skill-btn" id="skill1Btn">✨ SCHOPNOSŤ Q</button>
+        <button class="skill-btn" id="skill2Btn">🛡️ SCHOPNOSŤ E</button>
+        <button class="skill-btn" id="skill3Btn">⭐ ULTIMÁTNA R</button>
+    </div>
+    <div class="crosshair"></div>
+    <div class="kill-feed" id="killFeed"></div>
+
+    <!-- Tlačidlo EXIT (ukáže sa až po spustení hry) -->
+    <button id="exitGameBtn" class="exit-btn" style="display: none;">🚪 EXIT</button>
+
+    <!-- MENU NA VÝBER POSTAVY A MAPY -->
+    <div id="gameMenu" class="game-menu">
+        <div class="menu-container">
+            <div class="menu-title">⚡ 3D CHIBI HEROES ⚡</div>
+            <div class="menu-section">
+                <h3>🎮 VYBER SI POSTAVU</h3>
+                <div class="hero-selector" id="heroSelector">
+                    <div class="hero-card" data-hero="LUMA">
+                        <span class="hero-icon">✨</span>
+                        <div class="hero-name">LUMA (Svetielko)</div>
+                    </div>
+                    <div class="hero-card" data-hero="NOKI">
+                        <span class="hero-icon">🌿</span>
+                        <div class="hero-name">NOKÍ (Strážca)</div>
+                    </div>
+                    <div class="hero-card" data-hero="PIXIE">
+                        <span class="hero-icon">⚙️</span>
+                        <div class="hero-name">PIXIE (Génius)</div>
+                    </div>
+                </div>
+            </div>
+            <div class="menu-section">
+                <h3>🗺️ VYBER SI MAPU</h3>
+                <div class="map-selector" id="mapSelector">
+                    <div class="map-card" data-map="CRYSTAL">
+                        <div class="map-name">💎 KRYŠTÁLOVÁ JASKYŇA</div>
+                    </div>
+                    <div class="map-card" data-map="FOREST">
+                        <div class="map-name">🌲 LESNÁ SVATYŇA</div>
+                    </div>
+                    <div class="map-card" data-map="VOLCANO">
+                        <div class="map-name">🌋 OHNIVÝ KRÁTER</div>
+                    </div>
+                </div>
+            </div>
+            <button class="play-btn" id="playBtn">▶ SPUSTIŤ HRU</button>
+        </div>
+    </div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.128.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.128.0/examples/jsm/"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+        import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
+        
+        // ---------- KONFIGURÁCIA ----------
+        const MAX_PLAYERS = 10;
+        
+        // ---------- HERO DÁTA ----------
+        const HEROES = {
+            LUMA: {
+                id: "LUMA", name: "LUMA ⭐", color: 0x2e3d70, glow: 0xffaa55, primaryWeapon: "SVETELNÝ LÚČ",
+                damage: 26, fireRate: 0.32,
+                skill1: { name: "SVETELNÝ LÚČ", desc: "Oslepujúci výboj" },
+                skill2: { name: "HVIEZDNA OCHRANA", desc: "Štít +25HP" },
+                skill3: { name: "PADANIE HVIEZD", desc: "Oblasťové zničenie" }
+            },
+            NOKI: {
+                id: "NOKI", name: "NOKÍ 🌿", color: 0x3b7a57, glow: 0x88ff88, primaryWeapon: "PRÍRODNÝ OŠTEP",
+                damage: 22, fireRate: 0.38,
+                skill1: { name: "KORENNÉ ZOVRETIE", desc: "Spomalenie" },
+                skill2: { name: "PRÍRODNÉ UZDRAVENIE", desc: "Liečenie +20" },
+                skill3: { name: "VÍR LISTOV", desc: "Smršť poškodenia" }
+            },
+            PIXIE: {
+                id: "PIXIE", name: "PIXIE ⚙️", color: 0x333333, glow: 0x88ccff, primaryWeapon: "ELEKTRICKÝ BLASTER",
+                damage: 30, fireRate: 0.28,
+                skill1: { name: "MECH BOMB", desc: "Explózia" },
+                skill2: { name: "ZÁCHRANNÝ DRON", desc: "Liečenie+munícia" },
+                skill3: { name: "ELEKTRICKÝ ÚDER", desc: "Vysoké DMG" }
+            }
+        };
+        
+        // MAPY
+        const MAPS = {
+            CRYSTAL: { name: "💎 KRYŠTÁLOVÁ JASKYŇA", bgColor: 0x1a1a3a, groundColor: 0x4a3a8a, decoType: "crystal" },
+            FOREST: { name: "🌲 LESNÁ SVATYŇA", bgColor: 0x1a3a1a, groundColor: 0x3c8c3c, decoType: "trees" },
+            VOLCANO: { name: "🌋 OHNIVÝ KRÁTER", bgColor: 0x3a1a1a, groundColor: 0xb85c1a, decoType: "lava" }
+        };
+
+        // USER MODELS (your uploaded .fbx files moved into my-html-game/models)
+        const USER_MODELS = [
+            'my-html-game/models/Akira Blaze.fbx',
+            'my-html-game/models/astra nova.fbx',
+            'my-html-game/models/ivy thorn.fbx',
+            'my-html-game/models/luna frost.fbx',
+            'my-html-game/models/mira gear.fbx',
+            'my-html-game/models/neko shadow.fbx',
+            'my-html-game/models/nova volt.fbx',
+            'my-html-game/models/Raven Hex.fbx',
+            'my-html-game/models/sakura edge.fbx',
+            'my-html-game/models/valkyria prime.fbx'
+        ];
+        
+        // Globálne premenné
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x0a0a2a);
+        scene.fog = new THREE.FogExp2(0x0a0a2a, 0.008);
+        
+        const camera = new THREE.PerspectiveCamera(85, window.innerWidth / window.innerHeight, 0.05, 400);
+        camera.position.set(0, 1.65, 0);
+        
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        document.body.appendChild(renderer.domElement);
+        
+        const labelRenderer = new CSS2DRenderer();
+        labelRenderer.setSize(window.innerWidth, window.innerHeight);
+        labelRenderer.domElement.style.position = 'absolute';
+        labelRenderer.domElement.style.top = '0px';
+        labelRenderer.domElement.style.left = '0px';
+        labelRenderer.domElement.style.pointerEvents = 'none';
+        document.body.appendChild(labelRenderer.domElement);
+        
+        // Svetlá
+        const ambientLight = new THREE.AmbientLight(0x404060);
+        scene.add(ambientLight);
+        const mainLight = new THREE.DirectionalLight(0xffeedd, 1.3);
+        mainLight.position.set(5, 12, 6);
+        mainLight.castShadow = true;
+        scene.add(mainLight);
+        const fillLight = new THREE.PointLight(0x6688ff, 0.5);
+        fillLight.position.set(-3, 5, 4);
+        scene.add(fillLight);
+        
+        // ---------- TRIEDA CHIBI FIGHTER (vizuál podľa návrhu) ----------
+        class ChibiFighter {
+            constructor(id, name, heroType, isBot, startX, startZ) {
+                this.id = id;
+                this.name = name;
+                this.heroType = heroType;
+                this.isBot = isBot;
+                this.health = 100;
+                this.maxHealth = 100;
+                this.position = { x: startX, z: startZ };
+                this.mesh = null;
+                this.label = null;
+                this.speed = 4.6;
+                this.attackCooldown = 0;
+                this.ammo = 30;
+                this.reserveAmmo = 90;
+                this.skillCooldowns = [0, 0, 0];
+            }
+            
+            createModel() {
+                this.mesh = new THREE.Group();
+                this.mesh.position.set(this.position.x, 0, this.position.z);
+                scene.add(this.mesh);
+
+                const bodyGroup = new THREE.Group();
+                this.mesh.add(bodyGroup);
+
+                // Attempt to load a GLB model from `models/<HERO>.glb`. If loading fails, fall back to procedurally generated primitive.
+                try {
+                    const loader = new GLTFLoader();
+                    const fbxLoader = new FBXLoader();
+                    // If a specific model file was assigned to this fighter, try it first
+                    if (this.modelFile) {
+                        const mf = this.modelFile;
+                        if (mf.toLowerCase().endsWith('.glb')) {
+                            loader.load(mf, (gltf) => {
+                                while (bodyGroup.children.length) bodyGroup.remove(bodyGroup.children[0]);
+                                const modelRoot = gltf.scene;
+                                modelRoot.traverse((n) => { if (n.isMesh) { n.castShadow = true; n.receiveShadow = true; } });
+                                modelRoot.position.set(0, 0, 0);
+                                bodyGroup.add(modelRoot);
+                            }, undefined, () => { /* falled back to search below */ });
+                        } else if (mf.toLowerCase().endsWith('.fbx')) {
+                            fbxLoader.load(mf, (obj) => {
+                                while (bodyGroup.children.length) bodyGroup.remove(bodyGroup.children[0]);
+                                obj.traverse((n) => { if (n.isMesh) { n.castShadow = true; n.receiveShadow = true; } });
+                                obj.position.set(0, 0, 0);
+                                bodyGroup.add(obj);
+                            }, undefined, () => { /* falled back to search below */ });
+                        }
+                    }
+
+                    const candidates = [
+                        `my-html-game/models/${this.heroType}.glb`,
+                        `models/${this.heroType}.glb`,
+                        `${this.heroType}.glb`,
+                    ];
+                    const fbxCandidates = [
+                        `my-html-game/models/${this.heroType}.fbx`,
+                        `models/${this.heroType}.fbx`,
+                        `${this.heroType}.fbx`,
+                    ];
+
+                    let loaded = false;
+                    const tryNextGLB = (index) => {
+                        if (index >= candidates.length) { tryNextFBX(0); return; }
+                        const path = candidates[index];
+                        loader.load(path, (gltf) => {
+                            while (bodyGroup.children.length) bodyGroup.remove(bodyGroup.children[0]);
+                            const modelRoot = gltf.scene;
+                            modelRoot.traverse((n) => { if (n.isMesh) { n.castShadow = true; n.receiveShadow = true; } });
+                            modelRoot.position.set(0, 0, 0);
+                            bodyGroup.add(modelRoot);
+                            loaded = true;
+                        }, undefined, () => { tryNextGLB(index+1); });
+                    };
+
+                    const tryNextFBX = (index) => {
+                        if (index >= fbxCandidates.length) { console.warn('No model found for', this.heroType); return; }
+                        const path = fbxCandidates[index];
+                        fbxLoader.load(path, (obj) => {
+                            while (bodyGroup.children.length) bodyGroup.remove(bodyGroup.children[0]);
+                            obj.traverse((n) => { if (n.isMesh) { n.castShadow = true; n.receiveShadow = true; } });
+                            obj.position.set(0, 0, 0);
+                            bodyGroup.add(obj);
+                            loaded = true;
+                        }, undefined, () => { tryNextFBX(index+1); });
+                    };
+
+                    tryNextGLB(0);
+                } catch (e) {
+                    console.warn('GLTFLoader not available or load error', e);
+                    return;
+                }
+                
+                const div = document.createElement('div');
+                div.textContent = `${this.name} ❤️ ${Math.floor(this.health)}`;
+                div.style.background = 'rgba(0,0,0,0.8)';
+                div.style.color = '#ffdd99';
+                div.style.padding = '3px 10px';
+                div.style.borderRadius = '20px';
+                div.style.fontWeight = 'bold';
+                div.style.fontSize = '11px';
+                div.style.border = `1px solid ${new THREE.Color(HEROES[this.heroType].color).getStyle()}`;
+                this.label = new CSS2DObject(div);
+                this.label.position.set(0, 1.45, 0);
+                this.mesh.add(this.label);
+            }
+            
+            updateLabel() {
+                if (this.label && this.label.element) this.label.element.textContent = `${this.name} ❤️ ${Math.max(0, Math.floor(this.health))}`;
+            }
+            setPosition(x, z) {
+                const bound = 26;
+                this.position.x = Math.min(bound, Math.max(-bound, x));
+                this.position.z = Math.min(bound, Math.max(-bound, z));
+                if (this.mesh) this.mesh.position.set(this.position.x, 0, this.position.z);
+            }
+            damage(amount, sourceId) {
+                this.health = Math.max(0, this.health - amount);
+                this.updateLabel();
+                if (this.health <= 0) {
+                    addKillMessage(`${this.name} bol porazený!`);
+                    if (sourceId !== undefined && sourceId !== this.id) {
+                        const killer = fighters.find(f => f.id === sourceId);
+                        if (killer && !killer.isBot && killer.id === localPlayer?.id) {
+                            if (killer.ammo + 12 <= 30) killer.ammo += 12; else killer.ammo = 30;
+                            updateAmmoUI();
+                        }
+                    }
+                    this.respawn();
+                }
+                updateLobbyCount();
+            }
+            respawn() {
+                this.health = this.maxHealth;
+                this.ammo = 30;
+                this.reserveAmmo = 90;
+                const randX = (Math.random() - 0.5) * 44;
+                const randZ = (Math.random() - 0.5) * 44;
+                this.setPosition(randX, randZ);
+                this.updateLabel();
+                if (!this.isBot && this.id === localPlayer?.id) updateAmmoUI();
+            }
+            shoot() {
+                if (this.attackCooldown > 0) return false;
+                if (this.ammo <= 0) {
+                    if (this.reserveAmmo > 0) {
+                        let needed = Math.min(30 - this.ammo, this.reserveAmmo);
+                        this.ammo += needed;
+                        this.reserveAmmo -= needed;
+                        if (!this.isBot && this.id === localPlayer?.id) { updateAmmoUI(); addKillMessage("🔁 Prebitie!"); }
+                    }
+                    return false;
+                }
+                this.attackCooldown = HEROES[this.heroType].fireRate;
+                this.ammo--;
+                if (!this.isBot && this.id === localPlayer?.id) updateAmmoUI();
+                return true;
+            }
+        }
+        
+        let fighters = [];
+        let localPlayer = null;
+        let currentMapId = "CRYSTAL";
+        let lastFrameTime = performance.now();
+        let yawAngle = -Math.PI / 3;
+        let pitchAngle = 0;
+        let mouseX = 0, mouseY = 0;
+        const keyStates = { w: false, s: false, a: false, d: false };
+        let gameActive = false;
+        
+        // UI pomocné funkcie
+        function addKillMessage(msg) {
+            const feed = document.getElementById('killFeed');
+            const entry = document.createElement('div');
+            entry.className = 'kill-entry';
+            entry.textContent = `💀 ${msg}`;
+            feed.appendChild(entry);
+            setTimeout(() => entry.remove(), 5000);
+        }
+        function updateLobbyCount() {
+            const alive = fighters.filter(f => f.health > 0).length;
+            document.getElementById('playerCountDisplay').innerHTML = `👥 ${alive}/${MAX_PLAYERS}`;
+        }
+        function updateAmmoUI() {
+            if (localPlayer) {
+                document.getElementById('ammoText').innerHTML = `${localPlayer.ammo}/${localPlayer.reserveAmmo}`;
+                document.getElementById('healthFillBar').style.width = `${(localPlayer.health/localPlayer.maxHealth)*100}%`;
+            }
+        }
+        
+        // Map builder (herná aréna)
+        function buildMap(mapId) {
+            const toRemove = [];
+            scene.children.forEach(child => { if (child.userData && child.userData.isMapPart) toRemove.push(child); });
+            toRemove.forEach(item => scene.remove(item));
+            const mapData = MAPS[mapId];
+            scene.background = new THREE.Color(mapData.bgColor);
+            const groundMat = new THREE.MeshStandardMaterial({ color: mapData.groundColor });
+            const groundPlane = new THREE.Mesh(new THREE.PlaneGeometry(60, 60), groundMat);
+            groundPlane.rotation.x = -Math.PI/2;
+            groundPlane.position.y = -0.7;
+            groundPlane.receiveShadow = true;
+            groundPlane.userData = { isMapPart: true };
+            scene.add(groundPlane);
+            const ringMat = new THREE.MeshStandardMaterial({ color: 0xccaa77 });
+            const ring = new THREE.Mesh(new THREE.TorusGeometry(27, 0.45, 32, 120), ringMat);
+            ring.rotation.x = Math.PI/2;
+            ring.position.y = -0.55;
+            ring.userData = { isMapPart: true };
+            scene.add(ring);
+            // Dekorácie
+            if (mapData.decoType === "crystal") {
+                for (let i=0;i<90;i++) { const c=new THREE.Mesh(new THREE.ConeGeometry(0.45,1.4,6), new THREE.MeshStandardMaterial({ color:0xaa88ff,emissive:0x4422aa })); c.position.set((Math.random()-0.5)*52,-0.5,(Math.random()-0.5)*52); c.castShadow=true; c.userData={isMapPart:true}; scene.add(c); }
+            } else if (mapData.decoType === "trees") {
+                for (let i=0;i<70;i++) { const t=new THREE.Mesh(new THREE.CylinderGeometry(0.4,0.6,1.2,6), new THREE.MeshStandardMaterial({ color:0x8b5a2b })); t.position.set((Math.random()-0.5)*50,-0.5,(Math.random()-0.5)*50); t.castShadow=true; t.userData={isMapPart:true}; scene.add(t); }
+            } else if (mapData.decoType === "lava") {
+                for (let i=0;i<60;i++) { const r=new THREE.Mesh(new THREE.DodecahedronGeometry(0.55), new THREE.MeshStandardMaterial({ color:0xff5522,emissive:0x552200 })); r.position.set((Math.random()-0.5)*52,-0.55,(Math.random()-0.5)*52); r.castShadow=true; r.userData={isMapPart:true}; scene.add(r); }
+            }
+            const particleCount=1000, geo=new THREE.BufferGeometry(), pos=new Float32Array(particleCount*3);
+            for(let i=0;i<particleCount;i++) { pos[i*3]=(Math.random()-0.5)*110; pos[i*3+1]=Math.random()*16; pos[i*3+2]=(Math.random()-0.5)*100; }
+            geo.setAttribute('position', new THREE.BufferAttribute(pos,3));
+            const stars=new THREE.Points(geo, new THREE.PointsMaterial({ color:0xffcc88, size:0.07 }));
+            stars.userData={isMapPart:true};
+            scene.add(stars);
+        }
+        
+        // Čistenie celej hry (odstránenie všetkých bojovníkov)
+        function clearGame() {
+            if (fighters.length) {
+                fighters.forEach(fighter => {
+                    if (fighter.mesh) scene.remove(fighter.mesh);
+                    if (fighter.label) scene.remove(fighter.label);
+                });
+                fighters = [];
+                localPlayer = null;
+            }
+            // Odstránenie všetkých mapových častí (okrem svetiel)
+            const toRemove = [];
+            scene.children.forEach(child => { if (child.userData && child.userData.isMapPart) toRemove.push(child); });
+            toRemove.forEach(item => scene.remove(item));
+        }
+        
+        // Inicializácia hráčov (podľa vybranej postavy pre lokálneho)
+        function initFighters(selectedHeroId) {
+            fighters = [];
+            const heroOptions = ["LUMA", "NOKI", "PIXIE"];
+            for (let i=0;i<MAX_PLAYERS;i++) {
+                const isBot = i !== 0;
+                let heroPick;
+                if (!isBot) heroPick = selectedHeroId;
+                else heroPick = heroOptions[i % heroOptions.length];
+                const playerName = isBot ? `BOT_${i}` : "🔥 CHIBI ŠAMPION";
+                const startX = (Math.random() - 0.5) * 40;
+                const startZ = (Math.random() - 0.5) * 40;
+                const fighter = new ChibiFighter(i, playerName, heroPick, isBot, startX, startZ);
+                // Assign a user model (rotate through the list) so we use your uploaded characters
+                const modelIndex = i % USER_MODELS.length;
+                fighter.modelFile = USER_MODELS[modelIndex];
+                fighters.push(fighter);
+                fighter.createModel();
+                if (!isBot) {
+                    localPlayer = fighter;
+                    document.getElementById('playerNameDisplay').innerHTML = `⚔️ ${HEROES[heroPick].name}`;
+                    document.getElementById('weaponDisplay').innerHTML = `🔫 ${HEROES[heroPick].primaryWeapon}`;
+                    document.getElementById('skill1Btn').innerHTML = `✨ ${HEROES[heroPick].skill1.name}`;
+                    document.getElementById('skill2Btn').innerHTML = `🛡️ ${HEROES[heroPick].skill2.name}`;
+                    document.getElementById('skill3Btn').innerHTML = `⭐ ${HEROES[heroPick].skill3.name}`;
+                }
+            }
+            updateLobbyCount();
+            updateAmmoUI();
+        }
+        
+        // ----- EXIT funkcia (návrat do menu) -----
+        function exitToMenu() {
+            if (!gameActive) return;
+            gameActive = false;
+            // Uvoľnenie zámku myši
+            if (document.pointerLockElement === renderer.domElement) {
+                document.exitPointerLock();
+            }
+            // Vyčistenie hier
+            clearGame();
+            // Zobrazenie menu
+            const menu = document.getElementById('gameMenu');
+            menu.style.display = 'flex';
+            menu.style.opacity = '1';
+            // Skrytie exit tlačidla
+            document.getElementById('exitGameBtn').style.display = 'none';
+            // Reset herných premenných
+            localPlayer = null;
+            fighters = [];
+            // Vymazanie kill feedu
+            document.getElementById('killFeed').innerHTML = '';
+        }
+        
+        // Zvyšné herné mechaniky (raycast, schopnosti, AI)
+        function raycastHitEnemy(origin, direction) {
+            let closest=null, minD=999;
+            for(let f of fighters) {
+                if(f===localPlayer||f.health<=0) continue;
+                const toF=new THREE.Vector3(f.position.x,0.8,f.position.z).sub(origin);
+                const d=toF.length();
+                const dot=direction.clone().normalize().dot(toF.clone().normalize());
+                if(dot>0.85 && d<3.7 && d<minD) { minD=d; closest=f; }
+            }
+            return closest;
+        }
+        function createMuzzleFlash(pos,dir){ const f=new THREE.PointLight(0xffaa66,1.2,6); f.position.copy(pos.clone().add(dir.clone().multiplyScalar(0.6))); scene.add(f); setTimeout(()=>scene.remove(f),70); }
+        function getClosestEnemy(){ if(!localPlayer)return null; let c=null,minD=Infinity; for(let f of fighters) if(f!==localPlayer&&f.health>0){ const d=Math.hypot(f.position.x-localPlayer.position.x, f.position.z-localPlayer.position.z); if(d<minD){minD=d;c=f;} } return c; }
+        function areaDamage(dmg,source){ for(let f of fighters) if(f!==source&&f.health>0&&Math.hypot(f.position.x-source.position.x,f.position.z-source.position.z)<6) f.damage(dmg,source.id); }
+        function createBeamEffect(s,t){ if(t&&t.mesh){ const pts=[s.mesh.position.clone(), t.mesh.position.clone()]; const geo=new THREE.BufferGeometry().setFromPoints(pts); const line=new THREE.Line(geo,new THREE.LineBasicMaterial({color:0xffaa66})); scene.add(line); setTimeout(()=>scene.remove(line),180); } }
+        function createShieldEffect(f){ const s=new THREE.Mesh(new THREE.SphereGeometry(0.95,16,16),new THREE.MeshStandardMaterial({color:0xffcc88,emissive:0xff8844,transparent:true})); s.position.copy(f.mesh.position); scene.add(s); setTimeout(()=>scene.remove(s),1000); }
+        function useHeroSkill(idx){
+            if(!localPlayer||localPlayer.skillCooldowns[idx]>0) return;
+            localPlayer.skillCooldowns[idx]=7.5;
+            const hero=localPlayer.heroType, target=getClosestEnemy();
+            if(idx===0){
+                if(hero==="LUMA"){ if(target) target.damage(38,localPlayer.id); createBeamEffect(localPlayer,target); addKillMessage(`✨ ${HEROES.LUMA.skill1.name}!`);}
+                else if(hero==="NOKI"){ if(target){ target.damage(28,localPlayer.id); target.speed*=0.45; setTimeout(()=>{if(target)target.speed=4.6;},2000);} addKillMessage(`🌿 ${HEROES.NOKI.skill1.name}!`);}
+                else if(hero==="PIXIE"){ areaDamage(24,localPlayer); addKillMessage(`💣 ${HEROES.PIXIE.skill1.name}!`);}
+            } else if(idx===1){
+                if(hero==="LUMA"){ localPlayer.health=Math.min(localPlayer.maxHealth,localPlayer.health+28); localPlayer.updateLabel(); createShieldEffect(localPlayer); addKillMessage(`🛡️ ${HEROES.LUMA.skill2.name}!`);}
+                else if(hero==="NOKI"){ localPlayer.health=Math.min(localPlayer.maxHealth,localPlayer.health+22); addKillMessage(`💚 ${HEROES.NOKI.skill2.name}!`);}
+                else if(hero==="PIXIE"){ localPlayer.health+=18; localPlayer.reserveAmmo+=15; if(localPlayer.reserveAmmo>180)localPlayer.reserveAmmo=180; addKillMessage(`🤖 ${HEROES.PIXIE.skill2.name}!`);}
+                updateAmmoUI();
+            } else if(idx===2){
+                if(hero==="LUMA"){ areaDamage(42,localPlayer); addKillMessage(`⭐ ${HEROES.LUMA.skill3.name}!`);}
+                else if(hero==="NOKI"){ areaDamage(38,localPlayer); addKillMessage(`🍃 ${HEROES.NOKI.skill3.name}!`);}
+                else if(hero==="PIXIE"){ if(target) target.damage(50,localPlayer.id); else areaDamage(30,localPlayer); addKillMessage(`⚡ ${HEROES.PIXIE.skill3.name}!`);}
+            }
+            updateLobbyCount(); updateAmmoUI();
+        }
+        
+        function updateMovementAndAI(delta){
+            if(!gameActive) return;
+            if(localPlayer){
+                let mx=0,mz=0;
+                if(keyStates.w) mz-=1; if(keyStates.s) mz+=1; if(keyStates.a) mx-=1; if(keyStates.d) mx+=1;
+                if(mx!==0||mz!==0){
+                    const len=Math.hypot(mx,mz); mx/=len; mz/=len;
+                    const forward={x:Math.sin(yawAngle),z:Math.cos(yawAngle)};
+                    const right={x:Math.cos(yawAngle),z:-Math.sin(yawAngle)};
+                    let newX=localPlayer.position.x+(forward.x*mz+right.x*mx)*localPlayer.speed*delta;
+                    let newZ=localPlayer.position.z+(forward.z*mz+right.z*mx)*localPlayer.speed*delta;
+                    localPlayer.setPosition(newX,newZ);
+                }
+                camera.position.set(localPlayer.position.x,1.68,localPlayer.position.z);
+                camera.rotation.order='YXZ'; camera.rotation.set(pitchAngle,yawAngle,0);
+            }
+            for(let bot of fighters){
+                if(bot.isBot&&bot.health>0){
+                    let closest=null,minD=Infinity;
+                    for(let other of fighters) if(other!==bot&&other.health>0){ const d=Math.hypot(other.position.x-bot.position.x,other.position.z-bot.position.z); if(d<minD){minD=d;closest=other;} }
+                    if(closest){
+                        const dx=closest.position.x-bot.position.x, dz=closest.position.z-bot.position.z, len=Math.hypot(dx,dz);
+                        if(len>1.2){ const move=Math.min(bot.speed*delta,len-0.8); bot.setPosition(bot.position.x+(dx/len)*move,bot.position.z+(dz/len)*move); }
+                        else if(len<=2.8&&bot.attackCooldown<=0&&bot.ammo>0){ bot.ammo--; closest.damage(HEROES[bot.heroType].damage,bot.id); bot.attackCooldown=HEROES[bot.heroType].fireRate; createMuzzleFlash(bot.mesh.position,new THREE.Vector3(dx,0,dz).normalize()); }
+                        else if(bot.ammo<=0&&bot.reserveAmmo>0){ let load=Math.min(30,bot.reserveAmmo); bot.ammo+=load; bot.reserveAmmo-=load; }
+                    }
+                }
+                if(bot.attackCooldown>0) bot.attackCooldown-=delta;
+                for(let i=0;i<3;i++) if(bot.skillCooldowns[i]>0) bot.skillCooldowns[i]-=delta;
+            }
+        }
+        
+        // Eventy (streľba, pohyb) - len ak je hra aktívna
+        window.addEventListener('mousedown', (e) => {
+            if(e.button!==0||!gameActive||!localPlayer) return;
+            const rayOrigin=camera.position.clone(), direction=new THREE.Vector3(0,0,-1).applyQuaternion(camera.quaternion);
+            if(localPlayer.shoot()){
+                const hit=raycastHitEnemy(rayOrigin,direction);
+                if(hit&&hit!==localPlayer){ hit.damage(HEROES[localPlayer.heroType].damage,localPlayer.id); createMuzzleFlash(rayOrigin,direction); if(hit.health<=0) updateLobbyCount(); }
+                else createMuzzleFlash(rayOrigin,direction);
+            }
+            localPlayer.attackCooldown=HEROES[localPlayer.heroType].fireRate;
+        });
+        document.addEventListener('mousemove',(e)=>{ if(gameActive && document.pointerLockElement===renderer.domElement){ mouseX+=e.movementX*0.0022; mouseY+=e.movementY*0.0022; mouseY=Math.max(-1.3,Math.min(1.3,mouseY)); yawAngle=mouseX; pitchAngle=mouseY; } });
+        renderer.domElement.addEventListener('click',()=>{ if(gameActive) renderer.domElement.requestPointerLock(); });
+        document.addEventListener('keydown',(e)=>{ if(!gameActive) return; const k=e.key.toLowerCase(); if(k==='w')keyStates.w=true; if(k==='s')keyStates.s=true; if(k==='a')keyStates.a=true; if(k==='d')keyStates.d=true; if(k==='r'&&localPlayer&&localPlayer.ammo<30&&localPlayer.reserveAmmo>0){ let need=30-localPlayer.ammo, take=Math.min(need,localPlayer.reserveAmmo); localPlayer.ammo+=take; localPlayer.reserveAmmo-=take; updateAmmoUI(); } });
+        document.addEventListener('keyup',(e)=>{ if(!gameActive) return; const k=e.key.toLowerCase(); if(k==='w')keyStates.w=false; if(k==='s')keyStates.s=false; if(k==='a')keyStates.a=false; if(k==='d')keyStates.d=false; });
+        document.getElementById('skill1Btn').onclick=()=>{ if(gameActive) useHeroSkill(0); };
+        document.getElementById('skill2Btn').onclick=()=>{ if(gameActive) useHeroSkill(1); };
+        document.getElementById('skill3Btn').onclick=()=>{ if(gameActive) useHeroSkill(2); };
+        document.getElementById('exitGameBtn').onclick=exitToMenu;
+        
+        // Herné menu logika
+        let selectedHero = "LUMA";
+        let selectedMap = "CRYSTAL";
+        document.querySelectorAll('.hero-card').forEach(card => {
+            card.addEventListener('click', () => {
+                document.querySelectorAll('.hero-card').forEach(c=>c.classList.remove('selected'));
+                card.classList.add('selected');
+                selectedHero = card.dataset.hero;
+            });
+        });
+        document.querySelectorAll('.map-card').forEach(card => {
+            card.addEventListener('click', () => {
+                document.querySelectorAll('.map-card').forEach(c=>c.classList.remove('selected'));
+                card.classList.add('selected');
+                selectedMap = card.dataset.map;
+            });
+        });
+        document.getElementById('playBtn').addEventListener('click', () => {
+            // Vyčistenie predchádzajúcej hry
+            clearGame();
+            // Skry menu
+            document.getElementById('gameMenu').style.opacity = '0';
+            setTimeout(() => { document.getElementById('gameMenu').style.display = 'none'; }, 400);
+            // Nastavenie hry
+            currentMapId = selectedMap;
+            buildMap(currentMapId);
+            initFighters(selectedHero);
+            gameActive = true;
+            lastFrameTime = performance.now();
+            document.getElementById('exitGameBtn').style.display = 'block';
+            // Uvoľnenie stavu kláves
+            for (let k in keyStates) keyStates[k] = false;
+        });
+        // Predvolený výber
+        document.querySelector('.hero-card[data-hero="LUMA"]').classList.add('selected');
+        document.querySelector('.map-card[data-map="CRYSTAL"]').classList.add('selected');
+        
+        // Hlavná slučka
+        function gameLoop(){
+            const now=performance.now();
+            let delta=Math.min(0.033,(now-lastFrameTime)/1000);
+            lastFrameTime=now;
+            if(gameActive) updateMovementAndAI(delta);
+            renderer.render(scene,camera);
+            labelRenderer.render(scene,camera);
+            requestAnimationFrame(gameLoop);
+        }
+        window.addEventListener('resize',()=>{ camera.aspect=window.innerWidth/window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth,window.innerHeight); labelRenderer.setSize(window.innerWidth,window.innerHeight); });
+        gameLoop();
+    </script>
+</body>
+</html>
