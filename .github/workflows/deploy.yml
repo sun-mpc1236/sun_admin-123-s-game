@@ -10,6 +10,7 @@ permissions:
   contents: read
   pages: write
   id-token: write
+  actions: read
 
 concurrency:
   group: "pages"
@@ -30,6 +31,28 @@ jobs:
         uses: actions/configure-pages@v5
         with:
           enablement: true
+
+      - name: Ensure Pages enabled
+        run: |
+          python - <<'PY'
+          import os, json, urllib.request
+          repo = os.environ['GITHUB_REPOSITORY']
+          token = os.environ['GITHUB_TOKEN']
+          url = f'https://api.github.com/repos/{repo}/pages'
+          req = urllib.request.Request(url, method='GET', headers={'Authorization': f'Bearer {token}', 'Accept': 'application/vnd.github+json'})
+          try:
+              with urllib.request.urlopen(req) as r:
+                  print(r.read().decode())
+          except urllib.error.HTTPError as e:
+              if e.code == 404:
+                  print('Pages not found, attempting to create via API...')
+                  data = json.dumps({'source': {'branch': 'main', 'path': '/docs'}}).encode()
+                  req = urllib.request.Request(url, data=data, method='POST', headers={'Authorization': f'Bearer {token}', 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json'})
+                  with urllib.request.urlopen(req) as r:
+                      print(r.read().decode())
+              else:
+                  raise
+          PY
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
