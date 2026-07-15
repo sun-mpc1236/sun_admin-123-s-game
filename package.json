@@ -1,0 +1,12 @@
+{
+  "name": "my-html-game",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "npx --yes http-server . -p 8080"
+  },
+  "dependencies": {
+    "postprocessing": "^6.39.1",
+    "three": "^0.184.0"
+  }
+}
